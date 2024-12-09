@@ -3,6 +3,7 @@ module pht/comments-processor
 go 1.23.5
 
 require (
+	github.com/aws/aws-lambda-go v1.47.0
 	github.com/aws/aws-sdk-go-v2/config v1.29.6
 	github.com/h2non/gock v1.2.0
 )
