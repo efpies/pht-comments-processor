@@ -2,7 +2,7 @@ package aws
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	sdkConfig "github.com/aws/aws-sdk-go-v2/config"
 	"pht/comments-processor/services"
 )
@@ -23,9 +23,5 @@ func NewLocator() (services.InfraLocator, error) {
 }
 
 func (l *locator) Init() error {
-	if err := l.paramsProvider.Prefetch(); err != nil {
-		return errors.Join(errors.New("couldn't init params provider"), err)
-	}
-
 	return nil
 }
