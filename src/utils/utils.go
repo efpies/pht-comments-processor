@@ -1,8 +1,10 @@
 package utils
 
 import (
+	"fmt"
 	"io"
 	"log"
+	"net/url"
 )
 
 func Close(c io.Closer) {
@@ -21,4 +23,18 @@ func SafeDeref[T any](p *T) T {
 		return v
 	}
 	return *p
+}
+
+func HostURL(u *url.URL) (*url.URL, error) {
+	urlStr := fmt.Sprintf("%s://%s", u.Scheme, u.Host)
+	if u.Port() != "" {
+		urlStr = fmt.Sprintf("%s:%s", urlStr, u.Port())
+	}
+
+	base, err := url.Parse(urlStr)
+	if err != nil {
+		return nil, err
+	}
+
+	return base, nil
 }
