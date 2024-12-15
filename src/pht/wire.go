@@ -7,6 +7,7 @@ import (
 	"pht/comments-processor/pht/auth"
 	"pht/comments-processor/pht/config"
 	"pht/comments-processor/pht/handlers"
+	"pht/comments-processor/pht/services"
 	"pht/comments-processor/repo"
 )
 
@@ -23,8 +24,11 @@ var PhtSet = wire.NewSet(
 
 	config.NewConfig,
 	auth.NewTokensRefresher,
+	services.NewClient,
 
 	wire.Bind(new(config.ConfigProvider), new(*config.Config)),
+
+	wire.Bind(new(services.FixedPostsGetter), new(*services.Client)),
 
 	NewLocator,
 )
@@ -40,6 +44,7 @@ func ProvideRouter(l *Locator) (*handlers.Router, error) {
 		wire.FieldsOf(new(*Locator),
 			"accessTokenProvider",
 			"tokensRefresher",
+			"fixedPostsGetter",
 		))
 	return nil, nil
 }

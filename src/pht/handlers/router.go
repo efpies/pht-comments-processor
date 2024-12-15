@@ -6,6 +6,7 @@ import (
 	"github.com/mitchellh/mapstructure"
 	"pht/comments-processor/handlers/lambda"
 	"pht/comments-processor/pht/auth"
+	"pht/comments-processor/pht/services"
 	"reflect"
 )
 
@@ -15,15 +16,18 @@ type lambdaHandlerInOut[TReq any, TResp any] = func(TReq) (TResp, error)
 type Router struct {
 	accessTokenProvider auth.AccessTokenProvider
 	tokensRefresher     auth.TokensRefresher
+	fixedPostsGetter    services.FixedPostsGetter
 }
 
 func NewRouter(
 	accessTokenProvider auth.AccessTokenProvider,
 	tokensRefresher auth.TokensRefresher,
+	fixedPostsGetter services.FixedPostsGetter,
 ) *Router {
 	return &Router{
 		accessTokenProvider: accessTokenProvider,
 		tokensRefresher:     tokensRefresher,
+		fixedPostsGetter:    fixedPostsGetter,
 	}
 }
 
@@ -74,6 +78,8 @@ func (r *Router) makeHandler(method string) (any, error) {
 		return getAccessToken(r.accessTokenProvider), nil
 	case "token/refresh":
 		return refreshAccessToken(r.tokensRefresher), nil
+	case "content/post/fixed":
+		return getFixedPosts(r.fixedPostsGetter), nil
 	default:
 		return nil, fmt.Errorf("unhandled method: %s", method)
 	}
