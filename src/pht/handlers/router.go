@@ -69,8 +69,14 @@ func (r *Router) makeHandler(method string) (any, error) {
 		return getAccessToken(r.AccessTokenProvider()), nil
 	case "token/refresh":
 		return refreshAccessToken(r.TokensRefresher()), nil
+	case "content/page/list":
+		return getPages(r.Config(), r.AccessTokenProvider(), r.TokensRefresher(), r.PostCommentsGetter()), nil
 	case "content/post/fixed":
-		return getFixedPosts(r.Config(), r.AccessTokenProvider(), r.TokensRefresher()), nil
+		return getFixedPosts(r.Config(), r.AccessTokenProvider(), r.TokensRefresher(), r.PostCommentsGetter()), nil
+	case "content/post/by-id":
+		return getPost(r.Config(), r.AccessTokenProvider(), r.TokensRefresher(), r.PostCommentsGetter()), nil
+	case "content/post/comments/list":
+		return getPostComments(r.PostCommentsGetter()), nil
 	case "content/wiki/list":
 		return getWikis(r.Config(), r.AccessTokenProvider(), r.TokensRefresher()), nil
 	default:

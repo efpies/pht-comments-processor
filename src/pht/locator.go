@@ -4,6 +4,7 @@ import (
 	"errors"
 	"pht/comments-processor/pht/auth"
 	"pht/comments-processor/pht/config"
+	"pht/comments-processor/pht/services"
 	"pht/comments-processor/repo"
 )
 
@@ -14,12 +15,15 @@ type Locator interface {
 	RefreshTokenProvider() auth.RefreshTokenProvider
 	RefreshTokenUpdater() auth.RefreshTokenUpdater
 	TokensRefresher() auth.TokensRefresher
+	PostCommentsGetter() services.PostCommentsGetter
 }
 
 type locator struct {
 	config          *config.Config
 	tokensProvider  *auth.TokensProvider
 	tokensRefresher auth.TokensRefresher
+
+	serviceClient *services.Client
 }
 
 func NewLocator(pp repo.ParamsProvider) (Locator, error) {
@@ -37,6 +41,9 @@ func NewLocator(pp repo.ParamsProvider) (Locator, error) {
 		return nil, err
 	}
 	l.tokensRefresher = tr
+
+	sc, err := services.NewClient(l.Config(), l.AccessTokenProvider(), tr)
+	l.serviceClient = sc
 
 	return l, nil
 }
@@ -72,3 +79,5 @@ func (l *locator) RefreshTokenUpdater() auth.RefreshTokenUpdater {
 func (l *locator) TokensRefresher() auth.TokensRefresher {
 	return l.tokensRefresher
 }
+
+func (l *locator) PostCommentsGetter() services.PostCommentsGetter { return l.serviceClient }
