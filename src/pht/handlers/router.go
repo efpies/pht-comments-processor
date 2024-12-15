@@ -17,17 +17,20 @@ type Router struct {
 	accessTokenProvider auth.AccessTokenProvider
 	tokensRefresher     auth.TokensRefresher
 	fixedPostsGetter    services.FixedPostsGetter
+	wikiGetter          services.WikiGetter
 }
 
 func NewRouter(
 	accessTokenProvider auth.AccessTokenProvider,
 	tokensRefresher auth.TokensRefresher,
 	fixedPostsGetter services.FixedPostsGetter,
+	wikiGetter services.WikiGetter,
 ) *Router {
 	return &Router{
 		accessTokenProvider: accessTokenProvider,
 		tokensRefresher:     tokensRefresher,
 		fixedPostsGetter:    fixedPostsGetter,
+		wikiGetter:          wikiGetter,
 	}
 }
 
@@ -80,6 +83,8 @@ func (r *Router) makeHandler(method string) (any, error) {
 		return refreshAccessToken(r.tokensRefresher), nil
 	case "content/post/fixed":
 		return getFixedPosts(r.fixedPostsGetter), nil
+	case "content/wiki/list":
+		return getWikis(r.wikiGetter), nil
 	default:
 		return nil, fmt.Errorf("unhandled method: %s", method)
 	}
