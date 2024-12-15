@@ -3,31 +3,30 @@ package pht
 import (
 	"errors"
 	"pht/comments-processor/pht/auth"
-	"pht/comments-processor/pht/config"
 	"pht/comments-processor/pht/services"
 )
 
 type Locator struct {
-	config              config.ConfigProvider
 	tokensProvider      *auth.TokensProvider
 	accessTokenProvider auth.AccessTokenProvider
 	tokensRefresher     auth.TokensRefresher
 	fixedPostsGetter    services.FixedPostsGetter
+	wikiGetter          services.WikiGetter
 }
 
 func NewLocator(
-	config config.ConfigProvider,
 	tokensProvider *auth.TokensProvider,
 	accessTokenProvider auth.AccessTokenProvider,
 	tokensRefresher auth.TokensRefresher,
 	fixedPostsGetter services.FixedPostsGetter,
+	wikiGetter services.WikiGetter,
 ) *Locator {
 	return &Locator{
-		config:              config,
 		tokensProvider:      tokensProvider,
 		accessTokenProvider: accessTokenProvider,
 		tokensRefresher:     tokensRefresher,
 		fixedPostsGetter:    fixedPostsGetter,
+		wikiGetter:          wikiGetter,
 	}
 }
 
