@@ -11,6 +11,8 @@ type Locator struct {
 	accessTokenProvider auth.AccessTokenProvider
 	tokensRefresher     auth.TokensRefresher
 	fixedPostsGetter    services.FixedPostsGetter
+	postGetter          services.PostGetter
+	postCommentsGetter  services.PostCommentsGetter
 	wikiGetter          services.WikiGetter
 }
 
@@ -19,6 +21,8 @@ func NewLocator(
 	accessTokenProvider auth.AccessTokenProvider,
 	tokensRefresher auth.TokensRefresher,
 	fixedPostsGetter services.FixedPostsGetter,
+	postGetter services.PostGetter,
+	postCommentsGetter services.PostCommentsGetter,
 	wikiGetter services.WikiGetter,
 ) *Locator {
 	return &Locator{
@@ -26,6 +30,8 @@ func NewLocator(
 		accessTokenProvider: accessTokenProvider,
 		tokensRefresher:     tokensRefresher,
 		fixedPostsGetter:    fixedPostsGetter,
+		postGetter:          postGetter,
+		postCommentsGetter:  postCommentsGetter,
 		wikiGetter:          wikiGetter,
 	}
 }
