@@ -71,6 +71,8 @@ func (r *Router) makeHandler(method string) (any, error) {
 		return refreshAccessToken(r.TokensRefresher()), nil
 	case "content/post/fixed":
 		return getFixedPosts(r.Config(), r.AccessTokenProvider(), r.TokensRefresher()), nil
+	case "content/wiki/list":
+		return getWikis(r.Config(), r.AccessTokenProvider(), r.TokensRefresher()), nil
 	default:
 		return nil, fmt.Errorf("unhandled method: %s", method)
 	}
