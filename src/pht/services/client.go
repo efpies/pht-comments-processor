@@ -15,6 +15,10 @@ type FixedPostsGetter interface {
 	GetFixedPosts() ([]model.PostDto, error)
 }
 
+type WikiGetter interface {
+	GetWikis() ([]model.WikiDto, error)
+}
+
 type Client struct {
 	*transport.HTTPClient
 }
@@ -41,6 +45,22 @@ func (c *Client) GetFixedPosts() ([]model.PostDto, error) {
 	}
 
 	var response []model.PostDto
+	_, err := c.SendRequest(http.MethodGet, targetURL, nil, &response)
+	if err != nil {
+		return nil, err
+	}
+
+	return response, nil
+}
+
+func (c *Client) GetWikis() ([]model.WikiDto, error) {
+	log.Println("Loading wikis")
+
+	targetURL := url.URL{
+		Path: "api/v1/wiki/page/list/",
+	}
+
+	var response []model.WikiDto
 	_, err := c.SendRequest(http.MethodGet, targetURL, nil, &response)
 	if err != nil {
 		return nil, err
