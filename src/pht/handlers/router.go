@@ -17,6 +17,8 @@ type Router struct {
 	accessTokenProvider auth.AccessTokenProvider
 	tokensRefresher     auth.TokensRefresher
 	fixedPostsGetter    services.FixedPostsGetter
+	postGetter          services.PostGetter
+	postCommentsGetter  services.PostCommentsGetter
 	wikiGetter          services.WikiGetter
 }
 
@@ -24,12 +26,16 @@ func NewRouter(
 	accessTokenProvider auth.AccessTokenProvider,
 	tokensRefresher auth.TokensRefresher,
 	fixedPostsGetter services.FixedPostsGetter,
+	postGetter services.PostGetter,
+	postCommentsGetter services.PostCommentsGetter,
 	wikiGetter services.WikiGetter,
 ) *Router {
 	return &Router{
 		accessTokenProvider: accessTokenProvider,
 		tokensRefresher:     tokensRefresher,
 		fixedPostsGetter:    fixedPostsGetter,
+		postGetter:          postGetter,
+		postCommentsGetter:  postCommentsGetter,
 		wikiGetter:          wikiGetter,
 	}
 }
@@ -82,7 +88,11 @@ func (r *Router) makeHandler(method string) (any, error) {
 	case "token/refresh":
 		return refreshAccessToken(r.tokensRefresher), nil
 	case "content/post/fixed":
-		return getFixedPosts(r.fixedPostsGetter), nil
+		return getFixedPosts(r.fixedPostsGetter, r.postCommentsGetter), nil
+	case "content/post/by-id":
+		return getPost(r.postGetter, r.postCommentsGetter), nil
+	case "content/post/comments/list":
+		return getPostComments(r.postCommentsGetter), nil
 	case "content/wiki/list":
 		return getWikis(r.wikiGetter), nil
 	default:
