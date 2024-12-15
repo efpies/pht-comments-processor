@@ -11,26 +11,32 @@ import (
 	"pht/comments-processor/pht/auth"
 	"pht/comments-processor/pht/config"
 	"pht/comments-processor/pht/handlers"
+	"pht/comments-processor/pht/services"
 	"pht/comments-processor/repo"
 )
 
 // Injectors from wire.go:
 
 func ProvideLocator(pp repo.ParamsProvider) (*Locator, error) {
-	tokensProvider := auth.NewTokensProvider(pp)
 	configConfig := config.NewConfig(pp)
+	tokensProvider := auth.NewTokensProvider(pp)
 	tokensRefresher, err := auth.NewTokensRefresher(configConfig, tokensProvider, tokensProvider, tokensProvider)
 	if err != nil {
 		return nil, err
 	}
-	locator := NewLocator(tokensProvider, tokensProvider, tokensRefresher)
+	client, err := services.NewClient(configConfig, tokensProvider, tokensRefresher)
+	if err != nil {
+		return nil, err
+	}
+	locator := NewLocator(configConfig, tokensProvider, tokensProvider, tokensRefresher, client)
 	return locator, nil
 }
 
 func ProvideRouter(l *Locator) (*handlers.Router, error) {
 	accessTokenProvider := l.accessTokenProvider
 	tokensRefresher := l.tokensRefresher
-	router := handlers.NewRouter(accessTokenProvider, tokensRefresher)
+	fixedPostsGetter := l.fixedPostsGetter
+	router := handlers.NewRouter(accessTokenProvider, tokensRefresher, fixedPostsGetter)
 	return router, nil
 }
 
@@ -39,5 +45,5 @@ func ProvideRouter(l *Locator) (*handlers.Router, error) {
 var TokensProviderSet = wire.NewSet(auth.NewTokensProvider, wire.Bind(new(auth.AccessTokenProvider), new(*auth.TokensProvider)), wire.Bind(new(auth.AccessTokenUpdater), new(*auth.TokensProvider)), wire.Bind(new(auth.RefreshTokenProvider), new(*auth.TokensProvider)), wire.Bind(new(auth.RefreshTokenUpdater), new(*auth.TokensProvider)))
 
 var PhtSet = wire.NewSet(
-	TokensProviderSet, config.NewConfig, auth.NewTokensRefresher, wire.Bind(new(config.ConfigProvider), new(*config.Config)), NewLocator,
+	TokensProviderSet, config.NewConfig, auth.NewTokensRefresher, services.NewClient, wire.Bind(new(config.ConfigProvider), new(*config.Config)), wire.Bind(new(services.FixedPostsGetter), new(*services.Client)), NewLocator,
 )
