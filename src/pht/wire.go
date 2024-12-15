@@ -29,6 +29,7 @@ var PhtSet = wire.NewSet(
 	wire.Bind(new(config.ConfigProvider), new(*config.Config)),
 
 	wire.Bind(new(services.FixedPostsGetter), new(*services.Client)),
+	wire.Bind(new(services.WikiGetter), new(*services.Client)),
 
 	NewLocator,
 )
@@ -45,6 +46,7 @@ func ProvideRouter(l *Locator) (*handlers.Router, error) {
 			"accessTokenProvider",
 			"tokensRefresher",
 			"fixedPostsGetter",
+			"wikiGetter",
 		))
 	return nil, nil
 }
