@@ -10,4 +10,5 @@ type PostDto struct {
 	CommentsCount   int       `json:"comments_count"`
 	PubStartDate    time.Time `json:"pub_start_date"`
 	CreatedAt       time.Time `json:"created_at"`
+	LastCommentID   *int      `json:"last_comment_id,omitempty"`
 }
