@@ -31,7 +31,11 @@ type PostGetter interface {
 type PostCommentsGetter interface {
 	GetPostMostRecentComments(postId int) ([]model.CommentDto, error)
 	GetLastPostComment(postId int) (*model.CommentDto, error)
-	GetPostComments(postId int, page int, order ordering) ([]model.CommentDto, error)
+	GetPostComments(postId int, page int, order ordering) (comments []model.CommentDto, hasMore bool, err error)
+}
+
+type PagesGetter interface {
+	GetPages(from int, toInclusiveOpt *int, list string, sublist *string) (posts []model.PostDto, hasMore bool, err error)
 }
 
 type WikiGetter interface {
@@ -88,7 +92,7 @@ func (c *Client) GetPost(postId int) (model.PostDto, error) {
 	return response, nil
 }
 
-func (c *Client) GetPostComments(postId int, page int, order ordering) ([]model.CommentDto, error) {
+func (c *Client) GetPostComments(postId int, page int, order ordering) (comments []model.CommentDto, hasMore bool, err error) {
 	return PagedLoad(page, page, func(page int) (model.Page[model.CommentDto], error) {
 		targetUrl := (&url.URL{
 			Path: "api/v1/parent-comment/list",
@@ -105,7 +109,8 @@ func (c *Client) GetPostComments(postId int, page int, order ordering) ([]model.
 }
 
 func (c *Client) GetPostMostRecentComments(postId int) ([]model.CommentDto, error) {
-	return c.GetPostComments(postId, 1, createdAtDesc)
+	result, _, err := c.GetPostComments(postId, 1, createdAtDesc)
+	return result, err
 }
 
 func (c *Client) GetLastPostComment(postId int) (*model.CommentDto, error) {
@@ -119,6 +124,48 @@ func (c *Client) GetLastPostComment(postId int) (*model.CommentDto, error) {
 	}
 
 	return nil, nil
+}
+
+func (c *Client) GetPages(from int, toInclusiveOpt *int, list string, sublist *string) (posts []model.PostDto, hasMore bool, err error) {
+	slug := list
+	if sublist != nil {
+		slug += "/" + *sublist
+	}
+
+	to := 9999
+	if toInclusiveOpt != nil {
+		to = *toInclusiveOpt
+	}
+
+	log.Printf("[%s] Loading pages from %d to %d", slug, from, to)
+
+	posts, hasMore, err = PagedLoad(from, to, func(page int) (model.Page[model.PostDto], error) {
+		log.Printf("[%s] Loading page %d", slug, page)
+
+		targetUrl := (&url.URL{
+			Path: "api/v1/publication",
+			RawQuery: url.Values{
+				"page":               {strconv.Itoa(page)},
+				"feed_group":         {"physical_transformation"},
+				"visible_page_count": {"100"},
+			}.Encode(),
+		}).JoinPath(list).JoinPath("list")
+
+		if sublist != nil {
+			targetUrl = targetUrl.JoinPath(*sublist)
+		}
+
+		var subResponse model.Page[model.PostDto]
+		_, err := c.SendRequest(http.MethodGet, *targetUrl, nil, &subResponse)
+
+		return subResponse, err
+	})
+
+	if err != nil {
+		return nil, false, err
+	}
+
+	return posts, hasMore, nil
 }
 
 func (c *Client) GetWikis() ([]model.WikiDto, error) {

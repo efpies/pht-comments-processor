@@ -1,6 +1,7 @@
 package services
 
 import (
+	"github.com/samber/lo"
 	"pht/comments-processor/pht/model"
 )
 
@@ -27,13 +28,13 @@ func (f *PostFiller) fillLastCommentId(post *model.PostDto) error {
 		return nil
 	}
 
-	lastComment, err := f.postCommentsGetter.GetLastPostComment(post.Id)
+	comments, err := f.postCommentsGetter.GetPostMostRecentComments(post.Id)
 	if err != nil {
 		return err
 	}
 
-	if lastComment != nil {
-		post.LastCommentId = &lastComment.Id
+	if v, ok := lo.First(comments); ok {
+		post.LastCommentId = &v.Id
 	}
 
 	return nil
