@@ -28,7 +28,7 @@ func ProvideLocator(pp repo.ParamsProvider) (*Locator, error) {
 	if err != nil {
 		return nil, err
 	}
-	locator := NewLocator(tokensProvider, tokensProvider, tokensRefresher, client, client, client, client)
+	locator := NewLocator(tokensProvider, tokensProvider, tokensRefresher, client, client, client, client, client)
 	return locator, nil
 }
 
@@ -38,8 +38,9 @@ func ProvideRouter(l *Locator) (*handlers.Router, error) {
 	fixedPostsGetter := l.fixedPostsGetter
 	postGetter := l.postGetter
 	postCommentsGetter := l.postCommentsGetter
+	pagesGetter := l.pagesGetter
 	wikiGetter := l.wikiGetter
-	router := handlers.NewRouter(accessTokenProvider, tokensRefresher, fixedPostsGetter, postGetter, postCommentsGetter, wikiGetter)
+	router := handlers.NewRouter(accessTokenProvider, tokensRefresher, fixedPostsGetter, postGetter, postCommentsGetter, pagesGetter, wikiGetter)
 	return router, nil
 }
 
@@ -48,5 +49,5 @@ func ProvideRouter(l *Locator) (*handlers.Router, error) {
 var TokensProviderSet = wire.NewSet(auth.NewTokensProvider, wire.Bind(new(auth.AccessTokenProvider), new(*auth.TokensProvider)), wire.Bind(new(auth.AccessTokenUpdater), new(*auth.TokensProvider)), wire.Bind(new(auth.RefreshTokenProvider), new(*auth.TokensProvider)), wire.Bind(new(auth.RefreshTokenUpdater), new(*auth.TokensProvider)))
 
 var PhtSet = wire.NewSet(
-	TokensProviderSet, config.NewConfig, auth.NewTokensRefresher, services.NewClient, wire.Bind(new(config.ConfigProvider), new(*config.Config)), wire.Bind(new(services.FixedPostsGetter), new(*services.Client)), wire.Bind(new(services.PostGetter), new(*services.Client)), wire.Bind(new(services.PostCommentsGetter), new(*services.Client)), wire.Bind(new(services.WikiGetter), new(*services.Client)), NewLocator,
+	TokensProviderSet, config.NewConfig, auth.NewTokensRefresher, services.NewClient, wire.Bind(new(config.ConfigProvider), new(*config.Config)), wire.Bind(new(services.FixedPostsGetter), new(*services.Client)), wire.Bind(new(services.PostGetter), new(*services.Client)), wire.Bind(new(services.PostCommentsGetter), new(*services.Client)), wire.Bind(new(services.PagesGetter), new(*services.Client)), wire.Bind(new(services.WikiGetter), new(*services.Client)), NewLocator,
 )

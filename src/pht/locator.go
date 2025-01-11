@@ -13,6 +13,7 @@ type Locator struct {
 	fixedPostsGetter    services.FixedPostsGetter
 	postGetter          services.PostGetter
 	postCommentsGetter  services.PostCommentsGetter
+	pagesGetter         services.PagesGetter
 	wikiGetter          services.WikiGetter
 }
 
@@ -23,6 +24,7 @@ func NewLocator(
 	fixedPostsGetter services.FixedPostsGetter,
 	postGetter services.PostGetter,
 	postCommentsGetter services.PostCommentsGetter,
+	pagesGetter services.PagesGetter,
 	wikiGetter services.WikiGetter,
 ) *Locator {
 	return &Locator{
@@ -32,6 +34,7 @@ func NewLocator(
 		fixedPostsGetter:    fixedPostsGetter,
 		postGetter:          postGetter,
 		postCommentsGetter:  postCommentsGetter,
+		pagesGetter:         pagesGetter,
 		wikiGetter:          wikiGetter,
 	}
 }
