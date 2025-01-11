@@ -5,10 +5,9 @@ import (
 	"slices"
 )
 
-func PagedLoad[T any](pageFrom int, pageToInclusive int, loader func(page int) (model.Page[T], error)) ([]T, error) {
-	var response []T
-
+func PagedLoad[T any](pageFrom int, pageToInclusive int, loader func(page int) (model.Page[T], error)) (items []T, hasMore bool, err error) {
 	page := pageFrom
+	hasMore = true
 
 	for {
 		if page > pageToInclusive {
@@ -17,17 +16,18 @@ func PagedLoad[T any](pageFrom int, pageToInclusive int, loader func(page int) (
 
 		subResponse, err := loader(page)
 		if err != nil {
-			return []T{}, err
+			return []T{}, false, err
 		}
 
-		response = slices.Concat(response, subResponse.Items)
+		items = slices.Concat(items, subResponse.Items)
 
 		if !subResponse.Pagination.HasNextPage {
+			hasMore = false
 			break
 		}
 
 		page++
 	}
 
-	return response, nil
+	return items, hasMore, nil
 }
