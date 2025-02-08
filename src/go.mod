@@ -11,6 +11,7 @@ require (
 	github.com/h2non/gock v1.2.0
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/samber/lo v1.49.1
+	golang.org/x/sync v0.11.0
 )
 
 require (

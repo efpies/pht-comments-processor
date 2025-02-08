@@ -28,7 +28,11 @@ func ProvideLocator(pp repo.ParamsProvider) (*Locator, error) {
 	if err != nil {
 		return nil, err
 	}
-	locator := NewLocator(tokensProvider, tokensProvider, tokensRefresher, client, client, client, client, client)
+	postsProvider, err := providePostsProvider(client)
+	if err != nil {
+		return nil, err
+	}
+	locator := NewLocator(tokensProvider, tokensProvider, tokensRefresher, postsProvider, postsProvider, postsProvider, client, client, client)
 	return locator, nil
 }
 
@@ -44,10 +48,15 @@ func ProvideRouter(l *Locator) (*handlers.Router, error) {
 	return router, nil
 }
 
+func providePostsProvider(c *services.Client) (*services.PostsProvider, error) {
+	postsProvider := services.NewPostsProvider(c, c, c, c, c)
+	return postsProvider, nil
+}
+
 // wire.go:
 
 var TokensProviderSet = wire.NewSet(auth.NewTokensProvider, wire.Bind(new(auth.AccessTokenProvider), new(*auth.TokensProvider)), wire.Bind(new(auth.AccessTokenUpdater), new(*auth.TokensProvider)), wire.Bind(new(auth.RefreshTokenProvider), new(*auth.TokensProvider)), wire.Bind(new(auth.RefreshTokenUpdater), new(*auth.TokensProvider)))
 
 var PhtSet = wire.NewSet(
-	TokensProviderSet, config.NewConfig, auth.NewTokensRefresher, services.NewClient, wire.Bind(new(config.ConfigProvider), new(*config.Config)), wire.Bind(new(services.FixedPostsGetter), new(*services.Client)), wire.Bind(new(services.PostGetter), new(*services.Client)), wire.Bind(new(services.PostCommentsGetter), new(*services.Client)), wire.Bind(new(services.PagesGetter), new(*services.Client)), wire.Bind(new(services.WikiGetter), new(*services.Client)), NewLocator,
+	TokensProviderSet, config.NewConfig, auth.NewTokensRefresher, services.NewClient, wire.Bind(new(config.ConfigProvider), new(*config.Config)), providePostsProvider, wire.Bind(new(services.FixedPostsGetter), new(*services.PostsProvider)), wire.Bind(new(services.PostGetter), new(*services.PostsProvider)), wire.Bind(new(services.PostCommentsGetter), new(*services.Client)), wire.Bind(new(services.PagesGetter), new(*services.Client)), wire.Bind(new(services.WikiGetter), new(*services.Client)),
 )
