@@ -10,6 +10,7 @@ type Locator struct {
 	tokensProvider      *auth.TokensProvider
 	accessTokenProvider auth.AccessTokenProvider
 	tokensRefresher     auth.TokensRefresher
+	postsProvider       *services.PostsProvider
 	fixedPostsGetter    services.FixedPostsGetter
 	postGetter          services.PostGetter
 	postCommentsGetter  services.PostCommentsGetter
@@ -21,6 +22,7 @@ func NewLocator(
 	tokensProvider *auth.TokensProvider,
 	accessTokenProvider auth.AccessTokenProvider,
 	tokensRefresher auth.TokensRefresher,
+	postsProvider *services.PostsProvider,
 	fixedPostsGetter services.FixedPostsGetter,
 	postGetter services.PostGetter,
 	postCommentsGetter services.PostCommentsGetter,
@@ -31,6 +33,7 @@ func NewLocator(
 		tokensProvider:      tokensProvider,
 		accessTokenProvider: accessTokenProvider,
 		tokensRefresher:     tokensRefresher,
+		postsProvider:       postsProvider,
 		fixedPostsGetter:    fixedPostsGetter,
 		postGetter:          postGetter,
 		postCommentsGetter:  postCommentsGetter,
@@ -42,6 +45,10 @@ func NewLocator(
 func (s *Locator) Init() error {
 	if err := s.tokensProvider.Init(); err != nil {
 		return errors.Join(errors.New("couldn't init tokens provider"), err)
+	}
+
+	if err := s.postsProvider.Init(); err != nil {
+		return errors.Join(errors.New("couldn't init posts provider"), err)
 	}
 
 	return nil
