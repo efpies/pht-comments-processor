@@ -28,17 +28,17 @@ var PhtSet = wire.NewSet(
 
 	wire.Bind(new(config.ConfigProvider), new(*config.Config)),
 
-	wire.Bind(new(services.FixedPostsGetter), new(*services.Client)),
-	wire.Bind(new(services.PostGetter), new(*services.Client)),
+	providePostsProvider,
+
+	wire.Bind(new(services.FixedPostsGetter), new(*services.PostsProvider)),
+	wire.Bind(new(services.PostGetter), new(*services.PostsProvider)),
 	wire.Bind(new(services.PostCommentsGetter), new(*services.Client)),
 	wire.Bind(new(services.PagesGetter), new(*services.Client)),
 	wire.Bind(new(services.WikiGetter), new(*services.Client)),
-
-	NewLocator,
 )
 
 func ProvideLocator(pp repo.ParamsProvider) (*Locator, error) {
-	wire.Build(PhtSet)
+	wire.Build(PhtSet, NewLocator)
 	return nil, nil
 }
 
@@ -54,5 +54,17 @@ func ProvideRouter(l *Locator) (*handlers.Router, error) {
 			"pagesGetter",
 			"wikiGetter",
 		))
+	return nil, nil
+}
+
+func providePostsProvider(c *services.Client) (*services.PostsProvider, error) {
+	wire.Build(
+		services.NewPostsProvider,
+		wire.Bind(new(services.FixedPostsGetter), new(*services.Client)),
+		wire.Bind(new(services.PostGetter), new(*services.Client)),
+		wire.Bind(new(services.PostCommentsGetter), new(*services.Client)),
+		wire.Bind(new(services.PagesGetter), new(*services.Client)),
+		wire.Bind(new(services.WikiGetter), new(*services.Client)),
+	)
 	return nil, nil
 }

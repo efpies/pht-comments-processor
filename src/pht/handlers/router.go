@@ -93,9 +93,9 @@ func (r *Router) makeHandler(method string) (any, error) {
 	case "content/page/list":
 		return getPages(r.pagesGetter, r.postCommentsGetter), nil
 	case "content/post/fixed":
-		return getFixedPosts(r.fixedPostsGetter, r.postCommentsGetter), nil
+		return getFixedPosts(r.fixedPostsGetter), nil
 	case "content/post/by-id":
-		return getPost(r.postGetter, r.postCommentsGetter), nil
+		return getPost(r.postGetter), nil
 	case "content/post/comments/list":
 		return getPostComments(r.postCommentsGetter), nil
 	case "content/wiki/list":
