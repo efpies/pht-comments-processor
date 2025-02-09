@@ -92,6 +92,8 @@ func (r *Router) makeHandler(method string) (any, error) {
 		return refreshAccessToken(r.tokensRefresher), nil
 	case "content/page/list":
 		return getPages(r.pagesGetter, r.postCommentsGetter), nil
+	case "content/post/many":
+		return getPostsBatch(r.postGetter), nil
 	case "content/post/fixed":
 		return getFixedPosts(r.fixedPostsGetter), nil
 	case "content/post/by-id":
