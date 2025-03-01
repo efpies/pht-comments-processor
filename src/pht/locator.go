@@ -16,6 +16,7 @@ type Locator struct {
 	postCommentsGetter  services.PostCommentsGetter
 	pagesGetter         services.PagesGetter
 	wikiGetter          services.WikiGetter
+	sheetsDataProvider  *services.SheetsDataProvider
 }
 
 func NewLocator(
@@ -28,6 +29,7 @@ func NewLocator(
 	postCommentsGetter services.PostCommentsGetter,
 	pagesGetter services.PagesGetter,
 	wikiGetter services.WikiGetter,
+	sheetsDataProvider *services.SheetsDataProvider,
 ) *Locator {
 	return &Locator{
 		tokensProvider:      tokensProvider,
@@ -39,6 +41,7 @@ func NewLocator(
 		postCommentsGetter:  postCommentsGetter,
 		pagesGetter:         pagesGetter,
 		wikiGetter:          wikiGetter,
+		sheetsDataProvider:  sheetsDataProvider,
 	}
 }
 

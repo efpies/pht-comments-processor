@@ -1,14 +1,23 @@
 package config
 
-import "pht/comments-processor/repo"
+import (
+	"encoding/json"
+	"pht/comments-processor/repo"
+)
 
 type ConfigProvider interface {
 	RefreshTokenURL() string
 	ContentURL() string
+	FlowsSheets() map[string]FlowSheetConfig
 }
 
 type Config struct {
 	pp repo.ParamsProvider
+}
+
+type FlowSheetConfig struct {
+	SpreadsheetID string   `json:"spreadsheetId"`
+	Sheets        []string `json:"sheets"`
 }
 
 func NewConfig(pp repo.ParamsProvider) *Config {
@@ -23,4 +32,15 @@ func (c Config) RefreshTokenURL() string {
 
 func (c Config) ContentURL() string {
 	return c.pp.GetParam("pht/contentUrl")
+}
+
+func (c Config) FlowsSheets() map[string]FlowSheetConfig {
+	p := c.pp.GetParam("pht/flows/sheets")
+
+	var flows map[string]FlowSheetConfig
+	if err := json.Unmarshal([]byte(p), &flows); err != nil {
+		panic(err)
+	}
+
+	return flows
 }

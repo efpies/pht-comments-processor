@@ -21,6 +21,7 @@ type Router struct {
 	postCommentsGetter  services.PostCommentsGetter
 	pagesGetter         services.PagesGetter
 	wikiGetter          services.WikiGetter
+	sheetsDataProvider  *services.SheetsDataProvider
 }
 
 func NewRouter(
@@ -31,6 +32,7 @@ func NewRouter(
 	postCommentsGetter services.PostCommentsGetter,
 	pagesGetter services.PagesGetter,
 	wikiGetter services.WikiGetter,
+	sheetsDataProvider *services.SheetsDataProvider,
 ) *Router {
 	return &Router{
 		accessTokenProvider: accessTokenProvider,
@@ -40,6 +42,7 @@ func NewRouter(
 		postCommentsGetter:  postCommentsGetter,
 		pagesGetter:         pagesGetter,
 		wikiGetter:          wikiGetter,
+		sheetsDataProvider:  sheetsDataProvider,
 	}
 }
 
@@ -102,6 +105,8 @@ func (r *Router) makeHandler(method string) (any, error) {
 		return getPostComments(r.postCommentsGetter), nil
 	case "content/wiki/list":
 		return getWikis(r.wikiGetter), nil
+	case "content/sheet/data":
+		return getSheetData(r.sheetsDataProvider), nil
 	default:
 		return nil, fmt.Errorf("unhandled method: %s", method)
 	}
