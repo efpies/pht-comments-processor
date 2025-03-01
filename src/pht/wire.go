@@ -4,6 +4,7 @@ package pht
 
 import (
 	"github.com/google/wire"
+	"pht/comments-processor/google"
 	"pht/comments-processor/pht/auth"
 	"pht/comments-processor/pht/config"
 	"pht/comments-processor/pht/handlers"
@@ -35,6 +36,12 @@ var PhtSet = wire.NewSet(
 	wire.Bind(new(services.PostCommentsGetter), new(*services.Client)),
 	wire.Bind(new(services.PagesGetter), new(*services.Client)),
 	wire.Bind(new(services.WikiGetter), new(*services.Client)),
+
+	google.NewConfig,
+	wire.Bind(new(google.SheetsConfigProvider), new(*google.Config)),
+
+	google.NewSheetsClient,
+	services.NewSheetsDataProvider,
 )
 
 func ProvideLocator(pp repo.ParamsProvider) (*Locator, error) {
@@ -53,6 +60,7 @@ func ProvideRouter(l *Locator) (*handlers.Router, error) {
 			"postCommentsGetter",
 			"pagesGetter",
 			"wikiGetter",
+			"sheetsDataProvider",
 		))
 	return nil, nil
 }
