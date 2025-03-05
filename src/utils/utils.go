@@ -5,6 +5,7 @@ import (
 	"io"
 	"log"
 	"net/url"
+	"strconv"
 )
 
 func Close(c io.Closer) {
@@ -37,4 +38,18 @@ func HostURL(u *url.URL) (*url.URL, error) {
 	}
 
 	return base, nil
+}
+
+func AtoiSafe(s string) (int, error) {
+	if s == "" {
+		return 0, nil
+	}
+
+	i, err := strconv.Atoi(s)
+	if err != nil {
+
+		return 0, err
+	}
+
+	return i, nil
 }

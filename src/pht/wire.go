@@ -61,6 +61,7 @@ func ProvideRouter(l *Locator) (*handlers.Router, error) {
 			"pagesGetter",
 			"wikiGetter",
 			"sheetsDataProvider",
+			"config",
 		))
 	return nil, nil
 }

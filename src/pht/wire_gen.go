@@ -39,7 +39,7 @@ func ProvideLocator(pp repo.ParamsProvider) (*Locator, error) {
 		return nil, err
 	}
 	sheetsDataProvider := services.NewSheetsDataProvider(sheetsClient, configConfig)
-	locator := NewLocator(tokensProvider, tokensProvider, tokensRefresher, postsProvider, postsProvider, postsProvider, client, client, client, sheetsDataProvider)
+	locator := NewLocator(tokensProvider, tokensProvider, tokensRefresher, postsProvider, postsProvider, postsProvider, client, client, client, sheetsDataProvider, configConfig)
 	return locator, nil
 }
 
@@ -52,7 +52,8 @@ func ProvideRouter(l *Locator) (*handlers.Router, error) {
 	pagesGetter := l.pagesGetter
 	wikiGetter := l.wikiGetter
 	sheetsDataProvider := l.sheetsDataProvider
-	router := handlers.NewRouter(accessTokenProvider, tokensRefresher, fixedPostsGetter, postGetter, postCommentsGetter, pagesGetter, wikiGetter, sheetsDataProvider)
+	configProvider := l.config
+	router := handlers.NewRouter(accessTokenProvider, tokensRefresher, fixedPostsGetter, postGetter, postCommentsGetter, pagesGetter, wikiGetter, sheetsDataProvider, configProvider)
 	return router, nil
 }
 

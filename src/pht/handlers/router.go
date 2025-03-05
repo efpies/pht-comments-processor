@@ -6,6 +6,7 @@ import (
 	"github.com/mitchellh/mapstructure"
 	"pht/comments-processor/handlers/lambda"
 	"pht/comments-processor/pht/auth"
+	"pht/comments-processor/pht/config"
 	"pht/comments-processor/pht/services"
 	"reflect"
 )
@@ -22,6 +23,7 @@ type Router struct {
 	pagesGetter         services.PagesGetter
 	wikiGetter          services.WikiGetter
 	sheetsDataProvider  *services.SheetsDataProvider
+	config              config.ConfigProvider
 }
 
 func NewRouter(
@@ -33,6 +35,7 @@ func NewRouter(
 	pagesGetter services.PagesGetter,
 	wikiGetter services.WikiGetter,
 	sheetsDataProvider *services.SheetsDataProvider,
+	config config.ConfigProvider,
 ) *Router {
 	return &Router{
 		accessTokenProvider: accessTokenProvider,
@@ -43,6 +46,7 @@ func NewRouter(
 		pagesGetter:         pagesGetter,
 		wikiGetter:          wikiGetter,
 		sheetsDataProvider:  sheetsDataProvider,
+		config:              config,
 	}
 }
 
@@ -107,6 +111,8 @@ func (r *Router) makeHandler(method string) (any, error) {
 		return getWikis(r.wikiGetter), nil
 	case "content/sheet/data":
 		return getSheetData(r.sheetsDataProvider), nil
+	case "content/table/posts":
+		return getTablePosts(r.sheetsDataProvider, r.config), nil
 	default:
 		return nil, fmt.Errorf("unhandled method: %s", method)
 	}
