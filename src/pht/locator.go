@@ -3,6 +3,7 @@ package pht
 import (
 	"errors"
 	"pht/comments-processor/pht/auth"
+	"pht/comments-processor/pht/config"
 	"pht/comments-processor/pht/services"
 )
 
@@ -17,6 +18,7 @@ type Locator struct {
 	pagesGetter         services.PagesGetter
 	wikiGetter          services.WikiGetter
 	sheetsDataProvider  *services.SheetsDataProvider
+	config              config.ConfigProvider
 }
 
 func NewLocator(
@@ -30,6 +32,7 @@ func NewLocator(
 	pagesGetter services.PagesGetter,
 	wikiGetter services.WikiGetter,
 	sheetsDataProvider *services.SheetsDataProvider,
+	config config.ConfigProvider,
 ) *Locator {
 	return &Locator{
 		tokensProvider:      tokensProvider,
@@ -42,6 +45,7 @@ func NewLocator(
 		pagesGetter:         pagesGetter,
 		wikiGetter:          wikiGetter,
 		sheetsDataProvider:  sheetsDataProvider,
+		config:              config,
 	}
 }
 
