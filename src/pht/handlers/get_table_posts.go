@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"pht/comments-processor/pht/adapters"
 	"pht/comments-processor/pht/config"
+	"pht/comments-processor/pht/model/dto"
 	"pht/comments-processor/pht/services"
 	"pht/comments-processor/pht/strategies"
 )
@@ -35,8 +36,8 @@ type getTablePostsRequest struct {
 	Sheet    string   `mapstructure:"sheet"`
 }
 
-func getTablePosts(sheetsDataProvider *services.SheetsDataProvider, config config.ConfigProvider) lambdaHandlerInOut[getTablePostsRequest, map[string]strategies.TablePostsDto] {
-	return func(req getTablePostsRequest) (map[string]strategies.TablePostsDto, error) {
+func getTablePosts(sheetsDataProvider *services.SheetsDataProvider, config config.ConfigProvider) lambdaHandlerInOut[getTablePostsRequest, map[string]dto.TablePosts] {
+	return func(req getTablePostsRequest) (map[string]dto.TablePosts, error) {
 		adapter, err := makePostAdapter(req.PostType, config)
 		if err != nil {
 			return nil, err

@@ -1,8 +1,8 @@
-package model
+package dto
 
 import "time"
 
-type PostDto struct {
+type Post struct {
 	ID              int       `json:"id"`
 	Title           string    `json:"title"`
 	Active          *bool     `json:"active"`

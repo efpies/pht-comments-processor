@@ -3,15 +3,10 @@ package strategies
 import (
 	"github.com/samber/lo"
 	"pht/comments-processor/pht/adapters"
-	"pht/comments-processor/pht/model"
+	"pht/comments-processor/pht/model/dto"
 	"pht/comments-processor/pht/services"
 	"pht/comments-processor/utils"
 )
-
-type TablePostsDto struct {
-	Posts         []model.TablePostDto `json:"posts"`
-	LastCheckTime *string              `json:"last_check_time"`
-}
 
 type GetPostsInfoStrategy struct {
 	sheetsDataProvider *services.SheetsDataProvider
@@ -25,20 +20,20 @@ func NewGetPostsInfoStrategy(
 	}
 }
 
-func (s *GetPostsInfoStrategy) Fetch(adapter adapters.PostAdapter, flowID string, sheet string) (map[string]TablePostsDto, error) {
+func (s *GetPostsInfoStrategy) Fetch(adapter adapters.PostAdapter, flowID string, sheet string) (map[string]dto.TablePosts, error) {
 	rows, err := s.sheetsDataProvider.GetSheetData(flowID, sheet)
 	if err != nil {
 		return nil, err
 	}
 
-	result := make(map[string]TablePostsDto)
+	result := make(map[string]dto.TablePosts)
 	if !adapter.IsMultiTable() {
 		posts, lastTime, err := s.parseSubTable(adapter, rows)
 		if err != nil {
 			return nil, err
 		}
 
-		result[sheet] = TablePostsDto{Posts: posts, LastCheckTime: lastTime}
+		result[sheet] = dto.TablePosts{Posts: posts, LastCheckTime: lastTime}
 	} else {
 		for len(rows) > 0 {
 			rows = lo.DropWhile(rows, func(row []string) bool {
@@ -56,7 +51,7 @@ func (s *GetPostsInfoStrategy) Fetch(adapter adapters.PostAdapter, flowID string
 				return nil, err
 			}
 
-			result[header] = TablePostsDto{Posts: parsed, LastCheckTime: lastTime}
+			result[header] = dto.TablePosts{Posts: parsed, LastCheckTime: lastTime}
 
 			rows = rows[len(parsed)+1:]
 		}
@@ -65,7 +60,7 @@ func (s *GetPostsInfoStrategy) Fetch(adapter adapters.PostAdapter, flowID string
 	return result, nil
 }
 
-func (s *GetPostsInfoStrategy) parseSubTable(adapter adapters.PostAdapter, rows [][]string) (posts []model.TablePostDto, lastTime *string, err error) {
+func (s *GetPostsInfoStrategy) parseSubTable(adapter adapters.PostAdapter, rows [][]string) (posts []dto.TablePost, lastTime *string, err error) {
 	postEntries := utils.DropWhile(rows, func(row []string) bool {
 		return !adapter.IsPost(row)
 	})
@@ -115,14 +110,18 @@ func (s *GetPostsInfoStrategy) parseSubTable(adapter adapters.PostAdapter, rows 
 		lastCheckTime = &timeTable[*lastCheckTimeIdx]
 	}
 
-	tablePosts := lo.Map(postInfos, func(info adapters.TablePostInfo, _ int) model.TablePostDto {
+	tablePosts := lo.Map(postInfos, func(info adapters.TablePostInfo, _ int) dto.TablePost {
 		id, err1 := adapter.GetPostID(info)
 		if err1 != nil {
 			err = err1
-			return model.TablePostDto{}
+			return dto.TablePost{}
 		}
 
-		return model.NewTablePostDto(id, info.Title, info.LastCommentsCount())
+		return dto.TablePost{
+			ID:            id,
+			Title:         info.Title,
+			CommentsCount: info.LastCommentsCount(),
+		}
 	})
 	if err != nil {
 		return nil, nil, err

@@ -7,10 +7,6 @@ type ErrorResponse struct {
 	Code   string `json:"code"`
 }
 
-type ErrorDto struct {
-	Error string `json:"error"`
-}
-
 func (e *ErrorResponse) Error() error {
 	return errors.New(e.Detail)
 }

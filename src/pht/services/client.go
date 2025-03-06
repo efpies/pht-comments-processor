@@ -8,6 +8,7 @@ import (
 	"pht/comments-processor/pht/auth"
 	"pht/comments-processor/pht/config"
 	"pht/comments-processor/pht/model"
+	"pht/comments-processor/pht/model/dto"
 	"pht/comments-processor/pht/transport"
 	phtHttp "pht/comments-processor/transport/http"
 	"strconv"
@@ -21,25 +22,25 @@ const (
 )
 
 type FixedPostsGetter interface {
-	GetFixedPosts() ([]model.PostDto, error)
+	GetFixedPosts() ([]dto.Post, error)
 }
 
 type PostGetter interface {
-	GetPost(postID int) (model.PostDto, error)
+	GetPost(postID int) (dto.Post, error)
 }
 
 type PostCommentsGetter interface {
-	GetPostMostRecentComments(postID int) ([]model.CommentDto, error)
-	GetLastPostComment(postID int) (*model.CommentDto, error)
-	GetPostComments(postID int, page int, order ordering) (comments []model.CommentDto, hasMore bool, err error)
+	GetPostMostRecentComments(postID int) ([]dto.Comment, error)
+	GetLastPostComment(postID int) (*dto.Comment, error)
+	GetPostComments(postID int, page int, order ordering) (comments []dto.Comment, hasMore bool, err error)
 }
 
 type PagesGetter interface {
-	GetPages(from int, toInclusiveOpt *int, list string, sublist *string) (posts []model.PostDto, hasMore bool, err error)
+	GetPages(from int, toInclusiveOpt *int, list string, sublist *string) (posts []dto.Post, hasMore bool, err error)
 }
 
 type WikiGetter interface {
-	GetWikis() ([]model.WikiDto, error)
+	GetWikis() ([]dto.Wiki, error)
 }
 
 type Client struct {
@@ -57,7 +58,7 @@ func NewClient(config config.ConfigProvider, accessTokenProvider auth.AccessToke
 	}, nil
 }
 
-func (c *Client) GetFixedPosts() ([]model.PostDto, error) {
+func (c *Client) GetFixedPosts() ([]dto.Post, error) {
 	log.Println("Loading fixed posts")
 
 	targetURL := url.URL{
@@ -67,7 +68,7 @@ func (c *Client) GetFixedPosts() ([]model.PostDto, error) {
 		}.Encode(),
 	}
 
-	var response []model.PostDto
+	var response []dto.Post
 	_, err := c.SendRequest(http.MethodGet, targetURL, nil, &response)
 	if err != nil {
 		return nil, err
@@ -76,24 +77,24 @@ func (c *Client) GetFixedPosts() ([]model.PostDto, error) {
 	return response, nil
 }
 
-func (c *Client) GetPost(postID int) (model.PostDto, error) {
+func (c *Client) GetPost(postID int) (dto.Post, error) {
 	log.Printf("[%d] Loading post", postID)
 
 	targetURL := (&url.URL{
 		Path: "api/v1/publication/retrive",
 	}).JoinPath(strconv.Itoa(postID))
 
-	var response model.PostDto
+	var response dto.Post
 	_, err := c.SendRequest(http.MethodGet, *targetURL, nil, &response)
 	if err != nil {
-		return model.PostDto{}, err
+		return dto.Post{}, err
 	}
 
 	return response, nil
 }
 
-func (c *Client) GetPostComments(postID int, page int, order ordering) (comments []model.CommentDto, hasMore bool, err error) {
-	return PagedLoad(page, page, func(page int) (model.Page[model.CommentDto], error) {
+func (c *Client) GetPostComments(postID int, page int, order ordering) (comments []dto.Comment, hasMore bool, err error) {
+	return PagedLoad(page, page, func(page int) (model.Page[dto.Comment], error) {
 		targetURL := (&url.URL{
 			Path: "api/v1/parent-comment/list",
 			RawQuery: url.Values{
@@ -102,18 +103,18 @@ func (c *Client) GetPostComments(postID int, page int, order ordering) (comments
 			}.Encode(),
 		}).JoinPath(strconv.Itoa(postID))
 
-		var response model.Page[model.CommentDto]
+		var response model.Page[dto.Comment]
 		_, err := c.SendRequest(http.MethodGet, *targetURL, nil, &response)
 		return response, err
 	})
 }
 
-func (c *Client) GetPostMostRecentComments(postID int) ([]model.CommentDto, error) {
+func (c *Client) GetPostMostRecentComments(postID int) ([]dto.Comment, error) {
 	result, _, err := c.GetPostComments(postID, 1, createdAtDesc)
 	return result, err
 }
 
-func (c *Client) GetLastPostComment(postID int) (*model.CommentDto, error) {
+func (c *Client) GetLastPostComment(postID int) (*dto.Comment, error) {
 	comments, err := c.GetPostMostRecentComments(postID)
 	if err != nil {
 		return nil, err
@@ -126,7 +127,7 @@ func (c *Client) GetLastPostComment(postID int) (*model.CommentDto, error) {
 	return nil, nil
 }
 
-func (c *Client) GetPages(from int, toInclusiveOpt *int, list string, sublist *string) (posts []model.PostDto, hasMore bool, err error) {
+func (c *Client) GetPages(from int, toInclusiveOpt *int, list string, sublist *string) (posts []dto.Post, hasMore bool, err error) {
 	slug := list
 	if sublist != nil {
 		slug += "/" + *sublist
@@ -139,7 +140,7 @@ func (c *Client) GetPages(from int, toInclusiveOpt *int, list string, sublist *s
 
 	log.Printf("[%s] Loading pages from %d to %d", slug, from, to)
 
-	posts, hasMore, err = PagedLoad(from, to, func(page int) (model.Page[model.PostDto], error) {
+	posts, hasMore, err = PagedLoad(from, to, func(page int) (model.Page[dto.Post], error) {
 		log.Printf("[%s] Loading page %d", slug, page)
 
 		targetURL := (&url.URL{
@@ -155,7 +156,7 @@ func (c *Client) GetPages(from int, toInclusiveOpt *int, list string, sublist *s
 			targetURL = targetURL.JoinPath(*sublist)
 		}
 
-		var subResponse model.Page[model.PostDto]
+		var subResponse model.Page[dto.Post]
 		_, err := c.SendRequest(http.MethodGet, *targetURL, nil, &subResponse)
 
 		return subResponse, err
@@ -168,14 +169,14 @@ func (c *Client) GetPages(from int, toInclusiveOpt *int, list string, sublist *s
 	return posts, hasMore, nil
 }
 
-func (c *Client) GetWikis() ([]model.WikiDto, error) {
+func (c *Client) GetWikis() ([]dto.Wiki, error) {
 	log.Println("Loading wikis")
 
 	targetURL := url.URL{
 		Path: "api/v1/wiki/page/list/",
 	}
 
-	var response []model.WikiDto
+	var response []dto.Wiki
 	_, err := c.SendRequest(http.MethodGet, targetURL, nil, &response)
 	if err != nil {
 		return nil, err
