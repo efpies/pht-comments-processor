@@ -8,6 +8,7 @@ import (
 	"pht/comments-processor/pht/auth"
 	"pht/comments-processor/pht/config"
 	"pht/comments-processor/pht/services"
+	"pht/comments-processor/pht/strategies"
 	"reflect"
 )
 
@@ -23,6 +24,7 @@ type Router struct {
 	pagesGetter         services.PagesGetter
 	wikiGetter          services.WikiGetter
 	sheetsDataProvider  *services.SheetsDataProvider
+	checkPostStrategy   strategies.CheckPostStrategy
 	config              config.ConfigProvider
 }
 
@@ -35,6 +37,7 @@ func NewRouter(
 	pagesGetter services.PagesGetter,
 	wikiGetter services.WikiGetter,
 	sheetsDataProvider *services.SheetsDataProvider,
+	checkPostStrategy strategies.CheckPostStrategy,
 	config config.ConfigProvider,
 ) *Router {
 	return &Router{
@@ -46,6 +49,7 @@ func NewRouter(
 		pagesGetter:         pagesGetter,
 		wikiGetter:          wikiGetter,
 		sheetsDataProvider:  sheetsDataProvider,
+		checkPostStrategy:   checkPostStrategy,
 		config:              config,
 	}
 }
@@ -113,6 +117,8 @@ func (r *Router) makeHandler(method string) (any, error) {
 		return getSheetData(r.sheetsDataProvider), nil
 	case "content/table/posts":
 		return getTablePosts(r.sheetsDataProvider, r.config), nil
+	case "content/notifier/data":
+		return getNotifierData(r.sheetsDataProvider, r.config, r.checkPostStrategy), nil
 	default:
 		return nil, fmt.Errorf("unhandled method: %s", method)
 	}

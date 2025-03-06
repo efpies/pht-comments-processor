@@ -5,6 +5,7 @@ import (
 	"pht/comments-processor/pht/auth"
 	"pht/comments-processor/pht/config"
 	"pht/comments-processor/pht/services"
+	"pht/comments-processor/pht/strategies"
 )
 
 type Locator struct {
@@ -18,6 +19,7 @@ type Locator struct {
 	pagesGetter         services.PagesGetter
 	wikiGetter          services.WikiGetter
 	sheetsDataProvider  *services.SheetsDataProvider
+	checkPostStrategy   strategies.CheckPostStrategy
 	config              config.ConfigProvider
 }
 
@@ -32,6 +34,7 @@ func NewLocator(
 	pagesGetter services.PagesGetter,
 	wikiGetter services.WikiGetter,
 	sheetsDataProvider *services.SheetsDataProvider,
+	checkPostStrategy strategies.CheckPostStrategy,
 	config config.ConfigProvider,
 ) *Locator {
 	return &Locator{
@@ -45,6 +48,7 @@ func NewLocator(
 		pagesGetter:         pagesGetter,
 		wikiGetter:          wikiGetter,
 		sheetsDataProvider:  sheetsDataProvider,
+		checkPostStrategy:   checkPostStrategy,
 		config:              config,
 	}
 }
