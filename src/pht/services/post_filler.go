@@ -2,7 +2,7 @@ package services
 
 import (
 	"github.com/samber/lo"
-	"pht/comments-processor/pht/model"
+	"pht/comments-processor/pht/model/dto"
 )
 
 type PostFiller struct {
@@ -15,7 +15,7 @@ func NewPostFiller(postCommentsGetter PostCommentsGetter) *PostFiller {
 	}
 }
 
-func (f *PostFiller) FillPost(post *model.PostDto) error {
+func (f *PostFiller) FillPost(post *dto.Post) error {
 	if err := f.fillLastCommentID(post); err != nil {
 		return err
 	}
@@ -23,7 +23,7 @@ func (f *PostFiller) FillPost(post *model.PostDto) error {
 	return nil
 }
 
-func (f *PostFiller) fillLastCommentID(post *model.PostDto) error {
+func (f *PostFiller) fillLastCommentID(post *dto.Post) error {
 	if post.CommentsCount == 0 || post.LastCommentID != nil {
 		return nil
 	}

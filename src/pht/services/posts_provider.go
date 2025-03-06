@@ -5,7 +5,7 @@ import (
 	"github.com/samber/lo"
 	"golang.org/x/sync/errgroup"
 	"log"
-	"pht/comments-processor/pht/model"
+	"pht/comments-processor/pht/model/dto"
 	"pht/comments-processor/utils"
 	"strconv"
 	"sync"
@@ -97,16 +97,16 @@ func (p *PostsProvider) doInit() error {
 	return eg.Wait()
 }
 
-func (p *PostsProvider) getCachedPost(id int) (model.PostDto, bool) {
+func (p *PostsProvider) getCachedPost(id int) (dto.Post, bool) {
 	value, ok := p.cache.Load(id)
 	if !ok {
-		return model.PostDto{}, false
+		return dto.Post{}, false
 	}
 
-	return value.(model.PostDto), ok
+	return value.(dto.Post), ok
 }
 
-func (p *PostsProvider) cachePost(id int, post model.PostDto) {
+func (p *PostsProvider) cachePost(id int, post dto.Post) {
 	p.cache.Store(id, post)
 }
 
@@ -127,7 +127,7 @@ func (p *PostsProvider) loadFixedPosts(ctx context.Context, cancel context.Cance
 		p.cachePost(post.ID, post)
 	}
 
-	p.fixedPostsIDs = lo.Map(fixedPosts, func(post model.PostDto, _ int) int {
+	p.fixedPostsIDs = lo.Map(fixedPosts, func(post dto.Post, _ int) int {
 		return post.ID
 	})
 	return nil
@@ -178,8 +178,8 @@ func (p *PostsProvider) loadWiki(id int, ctx context.Context, cancel context.Can
 	return nil
 }
 
-func (p *PostsProvider) GetFixedPosts() ([]model.PostDto, error) {
-	posts := make([]model.PostDto, 0, len(p.fixedPostsIDs))
+func (p *PostsProvider) GetFixedPosts() ([]dto.Post, error) {
+	posts := make([]dto.Post, 0, len(p.fixedPostsIDs))
 	for _, postID := range p.fixedPostsIDs {
 		post, err := p.GetPost(postID)
 		if err != nil {
@@ -191,34 +191,34 @@ func (p *PostsProvider) GetFixedPosts() ([]model.PostDto, error) {
 	return posts, nil
 }
 
-func (p *PostsProvider) GetPost(postID int) (model.PostDto, error) {
-	var post model.PostDto
+func (p *PostsProvider) GetPost(postID int) (dto.Post, error) {
+	var post dto.Post
 	var err error
 	var ok bool
 
 	post, ok, err = p.tryGetCachedPost(postID, feedListKey, nil)
 	if err != nil {
-		return model.PostDto{}, err
+		return dto.Post{}, err
 	}
 
 	if !ok {
 		post, err = p.postGetter.GetPost(postID)
 		if err != nil {
-			return model.PostDto{}, err
+			return dto.Post{}, err
 		}
 
 		p.cachePost(postID, post)
 	}
 
 	if err := p.postFiller.FillPost(&post); err != nil {
-		return model.PostDto{}, err
+		return dto.Post{}, err
 	}
 
 	p.cachePost(postID, post)
 	return post, nil
 }
 
-func (p *PostsProvider) tryGetCachedPost(postID int, list string, sublist *string) (post model.PostDto, ok bool, err error) {
+func (p *PostsProvider) tryGetCachedPost(postID int, list string, sublist *string) (post dto.Post, ok bool, err error) {
 	for i := 0; i < 3; i++ {
 		post, ok = p.getCachedPost(postID)
 		if ok {
@@ -227,7 +227,7 @@ func (p *PostsProvider) tryGetCachedPost(postID int, list string, sublist *strin
 
 		hasNext, err := p.preloadNextPage(list, sublist, false)
 		if err != nil {
-			return model.PostDto{}, false, err
+			return dto.Post{}, false, err
 		}
 
 		if !hasNext {
@@ -235,7 +235,7 @@ func (p *PostsProvider) tryGetCachedPost(postID int, list string, sublist *strin
 		}
 	}
 
-	return model.PostDto{}, false, nil
+	return dto.Post{}, false, nil
 }
 
 func (p *PostsProvider) preloadNextPage(list string, sublist *string, loadAll bool) (hasNext bool, err error) {

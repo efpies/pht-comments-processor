@@ -1,6 +1,6 @@
-package model
+package dto
 
-type WikiDto struct {
+type Wiki struct {
 	ID    int    `json:"pk"`
 	Title string `json:"title"`
 }

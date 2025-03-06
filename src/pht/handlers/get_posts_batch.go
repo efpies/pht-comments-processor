@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"pht/comments-processor/pht/model"
+	"pht/comments-processor/pht/model/dto"
 	"pht/comments-processor/pht/services"
 	"sync"
 )
@@ -27,7 +27,7 @@ func getPostsBatch(postGetter services.PostGetter) lambdaHandlerInOut[getPostsBa
 				if err == nil {
 					posts[postID] = post
 				} else {
-					posts[postID] = model.ErrorDto{
+					posts[postID] = dto.Error{
 						Error: err.Error(),
 					}
 				}
