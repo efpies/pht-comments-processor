@@ -13,13 +13,14 @@ import (
 	"pht/comments-processor/pht/config"
 	"pht/comments-processor/pht/handlers"
 	"pht/comments-processor/pht/services"
+	"pht/comments-processor/pht/sheets"
 	"pht/comments-processor/pht/strategies"
 	"pht/comments-processor/repo"
 )
 
 // Injectors from wire.go:
 
-func ProvideLocator(pp repo.ParamsProvider) (*Locator, error) {
+func ProvideLocator(pp repo.ParamsProvider) (*locator, error) {
 	tokensProvider := auth.NewTokensProvider(pp)
 	configConfig := config.NewConfig(pp)
 	tokensRefresher, err := auth.NewTokensRefresher(configConfig, tokensProvider, tokensProvider, tokensProvider)
@@ -39,16 +40,18 @@ func ProvideLocator(pp repo.ParamsProvider) (*Locator, error) {
 	if err != nil {
 		return nil, err
 	}
-	sheetsDataProvider := services.NewSheetsDataProvider(sheetsClient, configConfig)
+	dataProvider := sheets.NewDataProvider(sheetsClient, configConfig)
 	contentCheckPostStrategy, err := strategies.NewContentCheckPostStrategy(postsProvider, configConfig)
 	if err != nil {
 		return nil, err
 	}
-	locator := NewLocator(tokensProvider, tokensProvider, tokensRefresher, postsProvider, postsProvider, postsProvider, client, client, client, sheetsDataProvider, contentCheckPostStrategy, configConfig)
-	return locator, nil
+	getPostsInfoStrategy := sheets.NewGetPostsInfoStrategy(dataProvider)
+	notifierDataGetter := sheets.NewNotifierDataGetter(getPostsInfoStrategy, contentCheckPostStrategy, configConfig)
+	phtLocator := newLocator(tokensProvider, tokensProvider, tokensRefresher, postsProvider, postsProvider, postsProvider, client, client, client, dataProvider, contentCheckPostStrategy, getPostsInfoStrategy, notifierDataGetter, configConfig)
+	return phtLocator, nil
 }
 
-func ProvideRouter(l *Locator) (*handlers.Router, error) {
+func ProvideRouter(l *locator) (*handlers.Router, error) {
 	accessTokenProvider := l.accessTokenProvider
 	tokensRefresher := l.tokensRefresher
 	fixedPostsGetter := l.fixedPostsGetter
@@ -56,10 +59,12 @@ func ProvideRouter(l *Locator) (*handlers.Router, error) {
 	postCommentsGetter := l.postCommentsGetter
 	pagesGetter := l.pagesGetter
 	wikiGetter := l.wikiGetter
-	sheetsDataProvider := l.sheetsDataProvider
+	dataProvider := l.sheetsDataProvider
 	checkPostStrategy := l.checkPostStrategy
+	getPostsInfoStrategy := l.getPostsInfoStrategy
+	notifierDataGetter := l.notifierDataGetter
 	configProvider := l.config
-	router := handlers.NewRouter(accessTokenProvider, tokensRefresher, fixedPostsGetter, postGetter, postCommentsGetter, pagesGetter, wikiGetter, sheetsDataProvider, checkPostStrategy, configProvider)
+	router := handlers.NewRouter(accessTokenProvider, tokensRefresher, fixedPostsGetter, postGetter, postCommentsGetter, pagesGetter, wikiGetter, dataProvider, checkPostStrategy, getPostsInfoStrategy, notifierDataGetter, configProvider)
 	return router, nil
 }
 
@@ -73,5 +78,5 @@ func providePostsProvider(c *services.Client) (*services.PostsProvider, error) {
 var TokensProviderSet = wire.NewSet(auth.NewTokensProvider, wire.Bind(new(auth.AccessTokenProvider), new(*auth.TokensProvider)), wire.Bind(new(auth.AccessTokenUpdater), new(*auth.TokensProvider)), wire.Bind(new(auth.RefreshTokenProvider), new(*auth.TokensProvider)), wire.Bind(new(auth.RefreshTokenUpdater), new(*auth.TokensProvider)))
 
 var PhtSet = wire.NewSet(
-	TokensProviderSet, config.NewConfig, auth.NewTokensRefresher, services.NewClient, wire.Bind(new(config.ConfigProvider), new(*config.Config)), providePostsProvider, wire.Bind(new(services.FixedPostsGetter), new(*services.PostsProvider)), wire.Bind(new(services.PostGetter), new(*services.PostsProvider)), wire.Bind(new(services.PostCommentsGetter), new(*services.Client)), wire.Bind(new(services.PagesGetter), new(*services.Client)), wire.Bind(new(services.WikiGetter), new(*services.Client)), google.NewConfig, wire.Bind(new(google.SheetsConfigProvider), new(*google.Config)), google.NewSheetsClient, services.NewSheetsDataProvider, strategies.NewContentCheckPostStrategy, wire.Bind(new(strategies.CheckPostStrategy), new(*strategies.ContentCheckPostStrategy)),
+	TokensProviderSet, config.NewConfig, auth.NewTokensRefresher, services.NewClient, wire.Bind(new(config.ConfigProvider), new(*config.Config)), providePostsProvider, wire.Bind(new(services.FixedPostsGetter), new(*services.PostsProvider)), wire.Bind(new(services.PostGetter), new(*services.PostsProvider)), wire.Bind(new(services.PostCommentsGetter), new(*services.Client)), wire.Bind(new(services.PagesGetter), new(*services.Client)), wire.Bind(new(services.WikiGetter), new(*services.Client)), google.NewConfig, wire.Bind(new(google.SheetsConfigProvider), new(*google.Config)), google.NewSheetsClient, sheets.NewDataProvider, sheets.NewGetPostsInfoStrategy, strategies.NewContentCheckPostStrategy, wire.Bind(new(strategies.CheckPostStrategy), new(*strategies.ContentCheckPostStrategy)), sheets.NewNotifierDataGetter,
 )

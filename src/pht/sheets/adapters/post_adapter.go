@@ -10,15 +10,6 @@ import (
 	"time"
 )
 
-type PostAdapter interface {
-	IsMultiTable() bool
-	IsHeader(row []string) bool
-	IsPost(row []string) bool
-	ToTablePostInfo(row []string) (TablePostInfo, error)
-	GetTimeTable(row []string) []string
-	GetPostID(postInfo TablePostInfo) (int, error)
-}
-
 type adapterConfig struct {
 	dateCellIdx                   *int
 	titleCellIdx                  *int

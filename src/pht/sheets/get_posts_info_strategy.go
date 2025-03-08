@@ -1,26 +1,25 @@
-package strategies
+package sheets
 
 import (
 	"github.com/samber/lo"
-	"pht/comments-processor/pht/adapters"
 	"pht/comments-processor/pht/model/dto"
-	"pht/comments-processor/pht/services"
+	"pht/comments-processor/pht/sheets/adapters"
 	"pht/comments-processor/utils"
 )
 
 type GetPostsInfoStrategy struct {
-	sheetsDataProvider *services.SheetsDataProvider
+	sheetsDataProvider *DataProvider
 }
 
 func NewGetPostsInfoStrategy(
-	sheetsDataProvider *services.SheetsDataProvider,
+	sheetsDataProvider *DataProvider,
 ) *GetPostsInfoStrategy {
 	return &GetPostsInfoStrategy{
 		sheetsDataProvider: sheetsDataProvider,
 	}
 }
 
-func (s *GetPostsInfoStrategy) Fetch(adapter adapters.PostAdapter, flowID string, sheet string) (map[string]dto.TablePosts, error) {
+func (s *GetPostsInfoStrategy) Fetch(adapter PostAdapter, flowID string, sheet string) (map[string]dto.TablePosts, error) {
 	rows, err := s.sheetsDataProvider.GetSheetData(flowID, sheet)
 	if err != nil {
 		return nil, err
@@ -60,7 +59,7 @@ func (s *GetPostsInfoStrategy) Fetch(adapter adapters.PostAdapter, flowID string
 	return result, nil
 }
 
-func (s *GetPostsInfoStrategy) parseSubTable(adapter adapters.PostAdapter, rows [][]string) (posts []dto.TablePost, lastTime *string, err error) {
+func (s *GetPostsInfoStrategy) parseSubTable(adapter PostAdapter, rows [][]string) (posts []dto.TablePost, lastTime *string, err error) {
 	postEntries := utils.DropWhile(rows, func(row []string) bool {
 		return !adapter.IsPost(row)
 	})
@@ -93,16 +92,16 @@ func (s *GetPostsInfoStrategy) parseSubTable(adapter adapters.PostAdapter, rows 
 		return nil, nil, err
 	}
 
-	lastCheckedPost := lo.MaxBy(postInfos, func(a adapters.TablePostInfo, b adapters.TablePostInfo) bool {
-		if a.LastCheckTimeIdx() == nil {
+	lastCheckedPost := lo.MaxBy(postInfos, func(candidate adapters.TablePostInfo, curMax adapters.TablePostInfo) bool {
+		if curMax.LastCheckTimeIdx() == nil {
 			return true
 		}
 
-		if b.LastCheckTimeIdx() == nil {
+		if candidate.LastCheckTimeIdx() == nil {
 			return false
 		}
 
-		return *a.LastCheckTimeIdx() < *b.LastCheckTimeIdx()
+		return *candidate.LastCheckTimeIdx() > *curMax.LastCheckTimeIdx()
 	})
 
 	var lastCheckTime *string

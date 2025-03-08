@@ -5,25 +5,34 @@ import (
 	"pht/comments-processor/pht/auth"
 	"pht/comments-processor/pht/config"
 	"pht/comments-processor/pht/services"
+	"pht/comments-processor/pht/sheets"
 	"pht/comments-processor/pht/strategies"
+	cservices "pht/comments-processor/services"
 )
 
-type Locator struct {
-	tokensProvider      *auth.TokensProvider
-	accessTokenProvider auth.AccessTokenProvider
-	tokensRefresher     auth.TokensRefresher
-	postsProvider       *services.PostsProvider
-	fixedPostsGetter    services.FixedPostsGetter
-	postGetter          services.PostGetter
-	postCommentsGetter  services.PostCommentsGetter
-	pagesGetter         services.PagesGetter
-	wikiGetter          services.WikiGetter
-	sheetsDataProvider  *services.SheetsDataProvider
-	checkPostStrategy   strategies.CheckPostStrategy
-	config              config.ConfigProvider
+type Locator interface {
+	cservices.Initable
+	GetNotifierDataGetter() *sheets.NotifierDataGetter
 }
 
-func NewLocator(
+type locator struct {
+	tokensProvider       *auth.TokensProvider
+	accessTokenProvider  auth.AccessTokenProvider
+	tokensRefresher      auth.TokensRefresher
+	postsProvider        *services.PostsProvider
+	fixedPostsGetter     services.FixedPostsGetter
+	postGetter           services.PostGetter
+	postCommentsGetter   services.PostCommentsGetter
+	pagesGetter          services.PagesGetter
+	wikiGetter           services.WikiGetter
+	sheetsDataProvider   *sheets.DataProvider
+	checkPostStrategy    strategies.CheckPostStrategy
+	getPostsInfoStrategy *sheets.GetPostsInfoStrategy
+	notifierDataGetter   *sheets.NotifierDataGetter
+	config               config.ConfigProvider
+}
+
+func newLocator(
 	tokensProvider *auth.TokensProvider,
 	accessTokenProvider auth.AccessTokenProvider,
 	tokensRefresher auth.TokensRefresher,
@@ -33,27 +42,31 @@ func NewLocator(
 	postCommentsGetter services.PostCommentsGetter,
 	pagesGetter services.PagesGetter,
 	wikiGetter services.WikiGetter,
-	sheetsDataProvider *services.SheetsDataProvider,
+	sheetsDataProvider *sheets.DataProvider,
 	checkPostStrategy strategies.CheckPostStrategy,
+	getPostsInfoStrategy *sheets.GetPostsInfoStrategy,
+	notifierDataGetter *sheets.NotifierDataGetter,
 	config config.ConfigProvider,
-) *Locator {
-	return &Locator{
-		tokensProvider:      tokensProvider,
-		accessTokenProvider: accessTokenProvider,
-		tokensRefresher:     tokensRefresher,
-		postsProvider:       postsProvider,
-		fixedPostsGetter:    fixedPostsGetter,
-		postGetter:          postGetter,
-		postCommentsGetter:  postCommentsGetter,
-		pagesGetter:         pagesGetter,
-		wikiGetter:          wikiGetter,
-		sheetsDataProvider:  sheetsDataProvider,
-		checkPostStrategy:   checkPostStrategy,
-		config:              config,
+) *locator {
+	return &locator{
+		tokensProvider:       tokensProvider,
+		accessTokenProvider:  accessTokenProvider,
+		tokensRefresher:      tokensRefresher,
+		postsProvider:        postsProvider,
+		fixedPostsGetter:     fixedPostsGetter,
+		postGetter:           postGetter,
+		postCommentsGetter:   postCommentsGetter,
+		pagesGetter:          pagesGetter,
+		wikiGetter:           wikiGetter,
+		sheetsDataProvider:   sheetsDataProvider,
+		checkPostStrategy:    checkPostStrategy,
+		getPostsInfoStrategy: getPostsInfoStrategy,
+		notifierDataGetter:   notifierDataGetter,
+		config:               config,
 	}
 }
 
-func (s *Locator) Init() error {
+func (s *locator) Init() error {
 	if err := s.tokensProvider.Init(); err != nil {
 		return errors.Join(errors.New("couldn't init tokens provider"), err)
 	}
@@ -63,4 +76,8 @@ func (s *Locator) Init() error {
 	}
 
 	return nil
+}
+
+func (s *locator) GetNotifierDataGetter() *sheets.NotifierDataGetter {
+	return s.notifierDataGetter
 }

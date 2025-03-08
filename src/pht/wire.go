@@ -9,6 +9,7 @@ import (
 	"pht/comments-processor/pht/config"
 	"pht/comments-processor/pht/handlers"
 	"pht/comments-processor/pht/services"
+	"pht/comments-processor/pht/sheets"
 	"pht/comments-processor/pht/strategies"
 	"pht/comments-processor/repo"
 )
@@ -42,21 +43,24 @@ var PhtSet = wire.NewSet(
 	wire.Bind(new(google.SheetsConfigProvider), new(*google.Config)),
 
 	google.NewSheetsClient,
-	services.NewSheetsDataProvider,
+	sheets.NewDataProvider,
+	sheets.NewGetPostsInfoStrategy,
 
 	strategies.NewContentCheckPostStrategy,
 	wire.Bind(new(strategies.CheckPostStrategy), new(*strategies.ContentCheckPostStrategy)),
+
+	sheets.NewNotifierDataGetter,
 )
 
-func ProvideLocator(pp repo.ParamsProvider) (*Locator, error) {
-	wire.Build(PhtSet, NewLocator)
+func ProvideLocator(pp repo.ParamsProvider) (*locator, error) {
+	wire.Build(PhtSet, newLocator)
 	return nil, nil
 }
 
-func ProvideRouter(l *Locator) (*handlers.Router, error) {
+func ProvideRouter(l *locator) (*handlers.Router, error) {
 	wire.Build(
 		handlers.NewRouter,
-		wire.FieldsOf(new(*Locator),
+		wire.FieldsOf(new(*locator),
 			"accessTokenProvider",
 			"tokensRefresher",
 			"fixedPostsGetter",
@@ -66,6 +70,8 @@ func ProvideRouter(l *Locator) (*handlers.Router, error) {
 			"wikiGetter",
 			"sheetsDataProvider",
 			"checkPostStrategy",
+			"getPostsInfoStrategy",
+			"notifierDataGetter",
 			"config",
 		))
 	return nil, nil

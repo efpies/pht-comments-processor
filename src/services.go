@@ -10,7 +10,7 @@ import (
 
 type appServices struct {
 	infraServices      services.InfraLocator
-	phtServices        *pht.Locator
+	phtServices        pht.Locator
 	lambdaEventHandler lambda.EventHandler
 }
 
@@ -49,6 +49,7 @@ func (s *appServices) init() error {
 		return err
 	}
 
+	s.phtServices = phtServices
 	s.lambdaEventHandler = leh
 
 	return nil

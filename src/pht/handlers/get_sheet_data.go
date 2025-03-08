@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"pht/comments-processor/pht/services"
+	"pht/comments-processor/pht/sheets"
 )
 
 type getSheetDataRequest struct {
@@ -9,7 +9,7 @@ type getSheetDataRequest struct {
 	Sheet  string `mapstructure:"sheet"`
 }
 
-func getSheetData(sheetsDataProvider *services.SheetsDataProvider) lambdaHandlerInOut[getSheetDataRequest, [][]string] {
+func getSheetData(sheetsDataProvider *sheets.DataProvider) lambdaHandlerInOut[getSheetDataRequest, [][]string] {
 	return func(req getSheetDataRequest) ([][]string, error) {
 		return sheetsDataProvider.GetSheetData(req.FlowID, req.Sheet)
 	}

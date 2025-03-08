@@ -1,4 +1,4 @@
-package services
+package sheets
 
 import (
 	"fmt"
@@ -7,19 +7,19 @@ import (
 	"pht/comments-processor/pht/config"
 )
 
-type SheetsDataProvider struct {
+type DataProvider struct {
 	sheetsClient *google.SheetsClient
 	config       config.ConfigProvider
 }
 
-func NewSheetsDataProvider(sheetsClient *google.SheetsClient, config config.ConfigProvider) *SheetsDataProvider {
-	return &SheetsDataProvider{
+func NewDataProvider(sheetsClient *google.SheetsClient, config config.ConfigProvider) *DataProvider {
+	return &DataProvider{
 		sheetsClient: sheetsClient,
 		config:       config,
 	}
 }
 
-func (provider *SheetsDataProvider) GetSheetData(flowID string, sheet string) ([][]string, error) {
+func (provider *DataProvider) GetSheetData(flowID string, sheet string) ([][]string, error) {
 	conf, ok := provider.config.FlowsSheets()[flowID]
 	if !ok {
 		return nil, fmt.Errorf("unknown flow ID: %s", flowID)

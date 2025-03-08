@@ -1,9 +1,9 @@
-package handlers
+package sheets
 
 import (
 	"fmt"
-	"pht/comments-processor/pht/adapters"
 	"pht/comments-processor/pht/config"
+	"pht/comments-processor/pht/sheets/adapters"
 )
 
 type PostType string
@@ -14,7 +14,7 @@ const (
 	CommunityPostType PostType = "community"
 )
 
-func makePostAdapter(postType PostType, config config.ConfigProvider) (adapters.PostAdapter, error) {
+func MakePostAdapter(postType PostType, config config.ConfigProvider) (PostAdapter, error) {
 	switch postType {
 	case ContentPostType:
 		return adapters.NewContentPostAdapter(config), nil
